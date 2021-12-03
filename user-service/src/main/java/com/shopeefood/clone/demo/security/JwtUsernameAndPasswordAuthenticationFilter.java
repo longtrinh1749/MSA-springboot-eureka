@@ -5,9 +5,11 @@ import com.google.gson.Gson;
 import com.shopeefood.clone.demo.entity.AppUser;
 import com.shopeefood.clone.demo.repository.AppUserRepository;
 import com.shopeefood.clone.demo.response.RegisterResult;
+import com.shopeefood.clone.demo.service.AppUserService;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -15,6 +17,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.stereotype.Service;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -32,12 +35,12 @@ public class JwtUsernameAndPasswordAuthenticationFilter extends UsernamePassword
 
     private final JwtConfig jwtConfig;
 
-    @Autowired
     private AppUserRepository appUserRepository;
 
-    public JwtUsernameAndPasswordAuthenticationFilter(AuthenticationManager authManager, JwtConfig jwtConfig) {
+    public JwtUsernameAndPasswordAuthenticationFilter(AuthenticationManager authManager, JwtConfig jwtConfig, AppUserRepository appUserRepository) {
         this.authManager = authManager;
         this.jwtConfig = jwtConfig;
+        this.appUserRepository = appUserRepository;
 
         // By default, UsernamePasswordAuthenticationFilter listens to "/login" path.
         // In our case, we use "/auth". So, we need to override the defaults.
@@ -80,13 +83,13 @@ public class JwtUsernameAndPasswordAuthenticationFilter extends UsernamePassword
 
         // Add token to header
         response.addHeader(jwtConfig.getHeader(), jwtConfig.getPrefix() + token);
-//        String body = new Gson().toJson(new RegisterResult(auth.getAuthorities().toArray()[0]
-//                .toString().split("_")[1], request.getSession().getId()));
         String body = new Gson().toJson(new RegisterResult(auth.getAuthorities().toArray()[0]
                 .toString().split("_")[1]));
+//        String body = new Gson().toJson(new RegisterResult(auth.getAuthorities().toArray()[0]
+//                .toString().split("_")[1]));
 
-//        appUserRepository.updateSessionAndToken(
-//                request.getSession().getId(), jwtConfig.getPrefix() + token, auth.getName());
+        appUserRepository.updateToken(jwtConfig.getPrefix() + token, auth.getName());
+//        appUserRepository.findAllByUsername(auth.getName());
         response.getWriter().write(body);
     }
 

@@ -2,8 +2,10 @@ package com.shopeefood.clone.demo.repository;
 
 import com.shopeefood.clone.demo.entity.AppUser;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -18,6 +20,8 @@ public interface AppUserRepository extends JpaRepository<AppUser, Long> {
     @Query(value = "select u from AppUser u where u.username = ?1")
     List<AppUser> findAllByUsername(String username);
 
-    @Query(value = "update AppUser u set u.sessionId = ?1, u.authenToken = ?2 where u.username = ?3")
-    void updateSessionAndToken(String sessionId, String token, String username);
+    @Transactional
+    @Modifying
+    @Query(value = "update AppUser u set u.authenToken = ?1 where u.username = ?2")
+    void updateSessionAndToken(String token, String username);
 }
